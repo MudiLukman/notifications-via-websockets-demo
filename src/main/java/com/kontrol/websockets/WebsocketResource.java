@@ -1,8 +1,10 @@
 package com.kontrol.websockets;
 
+import com.kontrol.events.model.EventDTO;
 import com.kontrol.websockets.decoders.NotificationDecoder;
 import com.kontrol.websockets.encoders.NotificationEncoder;
 import com.kontrol.websockets.model.Notification;
+import io.quarkus.vertx.ConsumeEvent;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.websocket.OnClose;
@@ -14,10 +16,9 @@ import javax.websocket.server.ServerEndpoint;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServerEndpoint(value = "websockets/{org}",
+@ServerEndpoint(value = "/websockets/{org}",
         encoders = NotificationEncoder.class,
         decoders = NotificationDecoder.class)
 @ApplicationScoped
@@ -36,16 +37,19 @@ public class WebsocketResource {
     }
 
     @OnError
-    public void onError(Session session, @PathParam("org") String orgName) {
+    public void onError(Session session, @PathParam("org") String orgName, Throwable throwable) {
         sessions.get(orgName).remove(session);
-        System.out.println("Error for sesh: " + session);
+        System.out.println("Error for sesh: " + session + " cause: " + throwable.getMessage());
     }
 
-    private void broadCast() {
+    @ConsumeEvent("new-event")
+    public void broadCast(EventDTO eventDTO) {
         Notification notification = new Notification();
-        notification.id = UUID.randomUUID();
+        notification.id = eventDTO.eventId;
         notification.triggeredAt = LocalDateTime.now();
-        notification.action = "New Notification Ready for Processing";
+        notification.action = "New Notification Ready for Processing: " + eventDTO.message;
+
+        System.out.println(notification);
 
         sessions.forEach((orgName, sessions) -> {
             for (Session session : sessions) {
