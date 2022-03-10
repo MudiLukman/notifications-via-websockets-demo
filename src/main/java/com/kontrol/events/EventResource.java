@@ -21,7 +21,7 @@ public class EventResource {
 
     @POST
     public Response createEvent(@Valid EventDTO event) {
-        eventBus.send("new-event", event);
+        eventBus.publish("new-event", event);
         return Response.status(Response.Status.CREATED).entity(event).build();
     }
 }

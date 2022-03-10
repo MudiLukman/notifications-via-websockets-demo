@@ -47,7 +47,7 @@ public class WebsocketResource {
     }
 
     @ConsumeEvent("new-event")
-    public void broadCast(EventDTO eventDTO) {
+    public void broadcast(EventDTO eventDTO) {
         Notification notification = new Notification();
         notification.triggeredAt = LocalDateTime.now();
         notification.message = "New Candidate Arrived";
