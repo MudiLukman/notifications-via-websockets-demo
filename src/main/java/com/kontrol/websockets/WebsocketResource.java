@@ -14,11 +14,12 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServerEndpoint(value = "/websockets/{org}",
+@ServerEndpoint(value = "/websockets/{username}",
         encoders = NotificationEncoder.class,
         decoders = NotificationDecoder.class)
 @ApplicationScoped
@@ -27,29 +28,30 @@ public class WebsocketResource {
     private static final Map<String, Set<Session>> sessions = new ConcurrentHashMap<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("org") String orgName) {
-        sessions.put(orgName, Set.of(session));
+    public void onOpen(Session session, @PathParam("username") String orgName) {
+        System.out.println("Connected to: " + orgName);
+        Set<Session> ss = new HashSet<>();
+        ss.add(session);
+        sessions.put(orgName, ss);
     }
 
     @OnClose
-    public void onClose(Session session, @PathParam("org") String orgName) {
+    public void onClose(Session session, @PathParam("username") String orgName) {
         sessions.get(orgName).remove(session);
     }
 
     @OnError
-    public void onError(Session session, @PathParam("org") String orgName, Throwable throwable) {
+    public void onError(Session session, @PathParam("username") String orgName, Throwable throwable) {
         sessions.get(orgName).remove(session);
-        System.out.println("Error for sesh: " + session + " cause: " + throwable.getMessage());
+        System.out.println("Error for session: " + session + " cause: " + throwable.getMessage());
     }
 
     @ConsumeEvent("new-event")
     public void broadCast(EventDTO eventDTO) {
         Notification notification = new Notification();
-        notification.id = eventDTO.eventId;
         notification.triggeredAt = LocalDateTime.now();
-        notification.action = "New Notification Ready for Processing: " + eventDTO.message;
-
-        System.out.println(notification);
+        notification.message = "New Candidate Arrived";
+        notification.payload = eventDTO;
 
         sessions.forEach((orgName, sessions) -> {
             for (Session session : sessions) {
