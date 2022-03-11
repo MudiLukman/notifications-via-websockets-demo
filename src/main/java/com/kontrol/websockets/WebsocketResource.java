@@ -1,7 +1,6 @@
 package com.kontrol.websockets;
 
 import com.kontrol.events.model.EventDTO;
-import com.kontrol.websockets.decoders.NotificationDecoder;
 import com.kontrol.websockets.encoders.NotificationEncoder;
 import com.kontrol.websockets.model.Notification;
 import io.quarkus.vertx.ConsumeEvent;
@@ -19,30 +18,28 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServerEndpoint(value = "/websockets/{username}",
-        encoders = NotificationEncoder.class,
-        decoders = NotificationDecoder.class)
 @ApplicationScoped
+@ServerEndpoint(value = "/websockets/{username}", encoders = NotificationEncoder.class)
 public class WebsocketResource {
 
     private static final Map<String, Set<Session>> sessions = new ConcurrentHashMap<>();
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String orgName) {
-        System.out.println("Connected to: " + orgName);
+    public void onOpen(Session session, @PathParam("username") String username) {
+        System.out.println("Connected to: " + username);
         Set<Session> ss = new HashSet<>();
         ss.add(session);
-        sessions.put(orgName, ss);
+        sessions.put(username, ss);
     }
 
     @OnClose
-    public void onClose(Session session, @PathParam("username") String orgName) {
-        sessions.get(orgName).remove(session);
+    public void onClose(Session session, @PathParam("username") String username) {
+        sessions.get(username).remove(session);
     }
 
     @OnError
-    public void onError(Session session, @PathParam("username") String orgName, Throwable throwable) {
-        sessions.get(orgName).remove(session);
+    public void onError(Session session, @PathParam("username") String username, Throwable throwable) {
+        sessions.get(username).remove(session);
         System.out.println("Error for session: " + session + " cause: " + throwable.getMessage());
     }
 

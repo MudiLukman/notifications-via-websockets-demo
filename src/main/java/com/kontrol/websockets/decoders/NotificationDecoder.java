@@ -1,20 +1,23 @@
 package com.kontrol.websockets.decoders;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kontrol.websockets.model.Notification;
 
-import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EndpointConfig;
 
 public class NotificationDecoder implements Decoder.Text<Notification> {
     @Override
-    public Notification decode(String s) throws DecodeException {
+    public Notification decode(String s){
         try {
-            return new ObjectMapper().convertValue(s, Notification.class);
-        } catch (IllegalArgumentException ex) {
-            System.out.println("error: " + ex.getMessage() + " decoding: " + s);
-            throw new DecodeException(s, ex.getMessage());
+            return new ObjectMapper()
+                    .registerModule(new JavaTimeModule())
+                    .readValue(s, Notification.class);
+        } catch (JsonProcessingException ex) {
+            System.out.println("Error decoding: " + s);
+            throw new IllegalArgumentException(ex);
         }
     }
 
