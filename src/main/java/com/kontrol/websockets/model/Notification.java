@@ -18,6 +18,7 @@ public class Notification {
         return "Notification{" +
                 "id=" + id +
                 ", message='" + message + '\'' +
+                ", payload=" + payload +
                 ", triggeredAt=" + triggeredAt +
                 '}';
     }
