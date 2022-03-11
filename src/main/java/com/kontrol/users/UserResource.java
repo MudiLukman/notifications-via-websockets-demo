@@ -1,6 +1,6 @@
-package com.kontrol.events;
+package com.kontrol.users;
 
-import com.kontrol.events.model.EventDTO;
+import com.kontrol.users.model.UserDTO;
 import io.vertx.mutiny.core.eventbus.EventBus;
 
 import javax.inject.Inject;
@@ -12,16 +12,16 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("events")
+@Path("users")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class EventResource {
+public class UserResource {
 
     @Inject EventBus eventBus;
 
     @POST
-    public Response createEvent(@Valid EventDTO event) {
-        eventBus.publish("new-event", event);
-        return Response.status(Response.Status.CREATED).entity(event).build();
+    public Response createEvent(@Valid UserDTO user) {
+        eventBus.publish("new-user", user);
+        return Response.status(Response.Status.CREATED).entity(user).build();
     }
 }
