@@ -2,7 +2,10 @@ package websockets;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.kontrol.events.model.EventDTO;
+import com.kontrol.courses.model.RetiredCourseDTO;
+import com.kontrol.users.model.UserDTO;
+import com.kontrol.websockets.model.Notification;
+import com.kontrol.websockets.model.NotificationType;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -25,25 +28,67 @@ public class WebsocketResourceTest {
     @Inject WebsocketClient websocketClient;
 
     @Test
-    public void testWebsocket() throws Exception{
-        var now = LocalDateTime.now();
-
-        EventDTO eventDTO = new EventDTO();
-        eventDTO.name = "New User: Mudi Lukman";
-        eventDTO.source = "Test Class";
-        eventDTO.createdAt = now;
+    public void testConsumeNewUser() throws Exception{
+        UserDTO userDTO = new UserDTO();
+        userDTO.name = "New User: Mudi Lukman";
+        userDTO.createdAt = LocalDateTime.now();
+        userDTO.source = "kontrol";
 
         try (Session session = ContainerProvider.getWebSocketContainer()
                 .connectToServer(websocketClient, websocketEndpoint)) {
-            eventBus.publish("new-event", eventDTO);
+            eventBus.publish("new-user", userDTO);
             Thread.sleep(1000); //Delay for at least 1 sec bcos server endpoint sends in an async fashion
-            Assertions.assertEquals("New Candidate Arrived", websocketClient.getNotification().message);
+            Assertions.assertEquals(
+                    "New applicant " + userDTO.name + " applied",
+                    websocketClient.getNotification().message);
+            Assertions.assertEquals("kontrol", websocketClient.getNotification().source);
+            Assertions.assertEquals(NotificationType.NEW_CANDIDATE, websocketClient.getNotification().type);
             var payload = new ObjectMapper().writeValueAsString(websocketClient.getNotification().payload);
-            EventDTO clientResponse = new ObjectMapper()
+            UserDTO clientResponse = new ObjectMapper()
                     .registerModule(new JavaTimeModule())
-                    .readValue(payload, EventDTO.class);
-            Assertions.assertEquals(eventDTO.name, clientResponse.name);
-            Assertions.assertEquals(eventDTO.source, clientResponse.source);
+                    .readValue(payload, UserDTO.class);
+            Assertions.assertEquals(userDTO.name, clientResponse.name);
+            Assertions.assertEquals(userDTO.createdAt, clientResponse.createdAt);
+        }
+    }
+
+    @Test
+    public void testConsumeRetiredCourse() throws Exception{
+        UserDTO userDTO = new UserDTO();
+        userDTO.name = "Mudi Lukman";
+        userDTO.createdAt = LocalDateTime.now().minusYears(3);
+        userDTO.source = "kontrol";
+
+        RetiredCourseDTO course = new RetiredCourseDTO();
+        course.source = userDTO.source;
+        course.retiredAt = LocalDateTime.now();
+        course.name = "CS 6006";
+        course.id = 1;
+        course.retiredBy = userDTO;
+
+        try (Session session = ContainerProvider.getWebSocketContainer()
+                .connectToServer(websocketClient, websocketEndpoint)) {
+            eventBus.publish("retire-course", course);
+            Thread.sleep(1000); //Delay for at least 1 sec bcos server endpoint sends in an async fashion
+            Notification notification = websocketClient.getNotification();
+            var payload = new ObjectMapper().writeValueAsString(notification.payload);
+            RetiredCourseDTO clientResponse = new ObjectMapper()
+                    .registerModule(new JavaTimeModule())
+                    .readValue(payload, RetiredCourseDTO.class);
+            UserDTO userResponse = clientResponse.retiredBy;
+            Assertions.assertEquals(
+                    course.name + " has been retired by " + userResponse.name,
+                    notification.message);
+            Assertions.assertEquals(course.source, notification.source);
+            Assertions.assertEquals(NotificationType.RETIRE_COURSE, notification.type);
+            Assertions.assertEquals(course.name, clientResponse.name);
+            Assertions.assertEquals(course.source, clientResponse.source);
+            Assertions.assertEquals(course.id, clientResponse.id);
+            Assertions.assertEquals(course.retiredAt, clientResponse.retiredAt);
+            Assertions.assertEquals(userDTO.name, userResponse.name);
+            Assertions.assertEquals(userDTO.source, userResponse.source);
+            Assertions.assertEquals(userDTO.createdAt, userResponse.createdAt);
+            Assertions.assertEquals(userDTO.userId, userResponse.userId);
         }
     }
 

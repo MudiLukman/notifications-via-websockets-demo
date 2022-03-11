@@ -1,6 +1,6 @@
-package websockets;
+package users;
 
-import com.kontrol.events.model.EventDTO;
+import com.kontrol.users.model.UserDTO;
 import com.kontrol.websockets.WebsocketResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -16,25 +16,25 @@ import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 
 @QuarkusTest
-public class EventResourceTest {
+public class UserResourceTest {
 
     @InjectMock
     WebsocketResource websocketResource;
 
     @Test
     public void testCreateEvent() {
-        Mockito.doNothing().when(websocketResource).broadcast(any(EventDTO.class));
+        Mockito.doNothing().when(websocketResource).consumeNewUser(any(UserDTO.class));
 
-        EventDTO eventDTO = new EventDTO();
-        eventDTO.source = "Test Class";
-        eventDTO.name = "Here you go new event!";
-        eventDTO.createdAt = LocalDateTime.now();
+        UserDTO userDTO = new UserDTO();
+        userDTO.name = "Here you go new event!";
+        userDTO.createdAt = LocalDateTime.now();
+        userDTO.source = "kontrol";
 
         given()
              .contentType(MediaType.APPLICATION_JSON)
-             .body(eventDTO)
+             .body(userDTO)
              .when()
-             .post("/events")
+             .post("/users")
              .then()
              .statusCode(Response.Status.CREATED.getStatusCode());
     }

@@ -1,4 +1,4 @@
-package com.kontrol.events.model;
+package com.kontrol.users.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
@@ -8,20 +8,20 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class EventDTO {
-    public UUID eventId = UUID.randomUUID();
+public class UserDTO {
+    public UUID userId = UUID.randomUUID();
     @NotBlank
     public String name;
     @NotNull
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     public LocalDateTime createdAt;
-    @NotBlank
+    @NotNull
     public String source;
 
     @Override
     public String toString() {
-        return "EventDTO{" +
-                "eventId=" + eventId +
+        return "UserDTO{" +
+                "userId=" + userId +
                 ", name='" + name + '\'' +
                 ", createdAt=" + createdAt +
                 ", source='" + source + '\'' +
