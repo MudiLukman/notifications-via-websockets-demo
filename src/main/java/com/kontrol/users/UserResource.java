@@ -21,7 +21,7 @@ public class UserResource {
 
     @POST
     public Response createEvent(@Valid UserDTO user) {
-        eventBus.publish("new-user", user);
+        eventBus.publish("ws-new-user", user);
         return Response.status(Response.Status.CREATED).entity(user).build();
     }
 }

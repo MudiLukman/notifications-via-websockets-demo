@@ -5,7 +5,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kontrol.courses.model.RetiredCourseDTO;
 import com.kontrol.users.model.UserDTO;
 import com.kontrol.websockets.model.Notification;
-import com.kontrol.websockets.model.NotificationType;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -36,13 +35,13 @@ public class WebsocketResourceTest {
 
         try (Session session = ContainerProvider.getWebSocketContainer()
                 .connectToServer(websocketClient, websocketEndpoint)) {
-            eventBus.publish("new-user", userDTO);
+            eventBus.publish("ws-new-user", userDTO);
             Thread.sleep(1000); //Delay for at least 1 sec bcos server endpoint sends in an async fashion
             Assertions.assertEquals(
                     "New applicant " + userDTO.name + " applied",
                     websocketClient.getNotification().message);
             Assertions.assertEquals("kontrol", websocketClient.getNotification().source);
-            Assertions.assertEquals(NotificationType.NEW_CANDIDATE, websocketClient.getNotification().type);
+            Assertions.assertEquals(Notification.NotificationType.NEW_CANDIDATE, websocketClient.getNotification().type);
             var payload = new ObjectMapper().writeValueAsString(websocketClient.getNotification().payload);
             UserDTO clientResponse = new ObjectMapper()
                     .registerModule(new JavaTimeModule())
@@ -68,7 +67,7 @@ public class WebsocketResourceTest {
 
         try (Session session = ContainerProvider.getWebSocketContainer()
                 .connectToServer(websocketClient, websocketEndpoint)) {
-            eventBus.publish("retire-course", course);
+            eventBus.publish("ws-retire-course", course);
             Thread.sleep(1000); //Delay for at least 1 sec bcos server endpoint sends in an async fashion
             Notification notification = websocketClient.getNotification();
             var payload = new ObjectMapper().writeValueAsString(notification.payload);
@@ -80,7 +79,7 @@ public class WebsocketResourceTest {
                     course.name + " has been retired by " + userResponse.name,
                     notification.message);
             Assertions.assertEquals(course.source, notification.source);
-            Assertions.assertEquals(NotificationType.RETIRE_COURSE, notification.type);
+            Assertions.assertEquals(Notification.NotificationType.RETIRE_COURSE, notification.type);
             Assertions.assertEquals(course.name, clientResponse.name);
             Assertions.assertEquals(course.source, clientResponse.source);
             Assertions.assertEquals(course.id, clientResponse.id);
