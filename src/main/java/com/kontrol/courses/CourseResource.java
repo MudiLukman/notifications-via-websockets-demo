@@ -21,7 +21,7 @@ public class CourseResource {
     public Response retire(@PathParam("id") int id, @Valid RetiredCourseDTO course) {
         //Claim to retire course but do nothing
         course.id = id;
-        eventBus.publish("retire-course", course);
+        eventBus.publish("ws-retire-course", course);
         return Response.ok(course).build();
     }
 }

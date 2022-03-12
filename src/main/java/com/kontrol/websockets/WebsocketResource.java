@@ -4,7 +4,6 @@ import com.kontrol.courses.model.RetiredCourseDTO;
 import com.kontrol.users.model.UserDTO;
 import com.kontrol.websockets.encoders.NotificationEncoder;
 import com.kontrol.websockets.model.Notification;
-import com.kontrol.websockets.model.NotificationType;
 import io.quarkus.vertx.ConsumeEvent;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -48,10 +47,10 @@ public class WebsocketResource {
         endSession(username, session);
     }
 
-    @ConsumeEvent("new-user")
+    @ConsumeEvent("ws-new-user")
     public void consumeNewUser(UserDTO userDTO) {
         Notification notification = new Notification();
-        notification.type = NotificationType.NEW_CANDIDATE;
+        notification.type = Notification.NotificationType.NEW_CANDIDATE;
         notification.message = "New applicant " + userDTO.name + " applied";
         notification.payload = userDTO;
         notification.source = userDTO.source;
@@ -59,10 +58,10 @@ public class WebsocketResource {
         broadcast(notification);
     }
 
-    @ConsumeEvent("retire-course")
+    @ConsumeEvent("ws-retire-course")
     public void consumeRetiredCourse(RetiredCourseDTO course) {
         Notification notification = new Notification();
-        notification.type = NotificationType.RETIRE_COURSE;
+        notification.type = Notification.NotificationType.RETIRE_COURSE;
         notification.message = course.name + " has been retired by " + course.retiredBy.name;
         notification.payload = course;
         notification.source = course.source;
