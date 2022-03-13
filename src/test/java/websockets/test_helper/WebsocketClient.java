@@ -1,6 +1,6 @@
 package websockets.test_helper;
 
-import com.kontrol.websockets.decoders.NotificationDecoder;
+import com.kontrol.websockets.codecs.NotificationDecoder;
 import com.kontrol.websockets.model.Notification;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -20,5 +20,9 @@ public class WebsocketClient {
 
     public Notification getNotification() {
         return notification;
+    }
+
+    public void setNotification(Notification notification) {
+        this.notification = notification;
     }
 }

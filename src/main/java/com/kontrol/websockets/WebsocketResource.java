@@ -2,37 +2,39 @@ package com.kontrol.websockets;
 
 import com.kontrol.courses.model.RetiredCourseDTO;
 import com.kontrol.users.model.UserDTO;
-import com.kontrol.websockets.encoders.NotificationEncoder;
+import com.kontrol.websockets.codecs.NotificationEncoder;
 import com.kontrol.websockets.model.Notification;
+import com.kontrol.websockets.security.WebsocketFilter;
 import io.quarkus.vertx.ConsumeEvent;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+import javax.inject.Inject;
+import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
-@ServerEndpoint(value = "/websockets/{username}", encoders = NotificationEncoder.class)
+@ServerEndpoint(value = "/websockets/{username}", encoders = NotificationEncoder.class,
+configurator = WebsocketFilter.class)
 public class WebsocketResource {
 
-    private static final Map<String, Set<Session>> sessions = new ConcurrentHashMap<>();
+    private final Map<String, Set<Session>> sessions = new ConcurrentHashMap<>();
+    @Inject ProofKeyService proofKeyService;
 
     @OnOpen
-    public void onOpen(Session session, @PathParam("username") String username) {
-        System.out.println("Connected to: " + username);
-        Set<Session> newSessions = new HashSet<>();
-        newSessions.add(session);
-        sessions.merge(username, newSessions, (existingSess, newSess) -> {
-            existingSess.addAll(newSess);
-            return existingSess;
-        });
+    public void onOpen(Session session, EndpointConfig endpointConfig, @PathParam("username") String username) {
+        var code = (String) endpointConfig.getUserProperties().get("code");
+        UUID accessCode = UUID.fromString(code);
+        if (proofKeyService.removeCode(accessCode) == null) {
+            System.out.println("Invalid code: " + accessCode); //silently ignore
+            return;
+        }
+        addSession(session, username);
     }
 
     @OnClose
@@ -76,5 +78,14 @@ public class WebsocketResource {
 
     private void endSession(String username, Session session) {
         sessions.getOrDefault(username, new HashSet<>()).remove(session);
+    }
+
+    private void addSession(Session session, String username) {
+        Set<Session> newSessions = new HashSet<>();
+        newSessions.add(session);
+        sessions.merge(username, newSessions, (existingSess, newSess) -> {
+            existingSess.addAll(newSess);
+            return existingSess;
+        });
     }
 }

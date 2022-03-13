@@ -1,4 +1,4 @@
-package com.kontrol.websockets.encoders;
+package com.kontrol.websockets.codecs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
