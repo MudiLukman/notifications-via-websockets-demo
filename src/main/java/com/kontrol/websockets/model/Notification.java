@@ -16,7 +16,7 @@ public class Notification {
     @Override
     public String toString() {
         return "Notification{" +
-                ", type=" + type +
+                "type=" + type +
                 ", message='" + message + '\'' +
                 ", payload=" + payload +
                 ", source='" + source + '\'' +
