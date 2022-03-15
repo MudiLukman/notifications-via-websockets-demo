@@ -31,15 +31,13 @@ public class WebsocketResource {
         var code = (String) endpointConfig.getUserProperties().get("code");
         UUID accessCode = UUID.fromString(code);
         if (proofKeyService.removeCode(accessCode) == null) {
-            System.out.println("Invalid code: " + accessCode); //silently ignore
-            return;
+            return; //silently ignore
         }
         addSession(session, username);
     }
 
     @OnClose
     public void onClose(Session session, @PathParam("username") String username) {
-        System.out.println("Closing session: " + session.getId());
         endSession(username, session);
     }
 
