@@ -16,6 +16,8 @@ public class UserDTO {
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     public LocalDateTime createdAt;
     @NotNull
+    public String departmentId;
+    @NotNull
     public String source;
 
     @Override
@@ -24,6 +26,7 @@ public class UserDTO {
                 "userId=" + userId +
                 ", name='" + name + '\'' +
                 ", createdAt=" + createdAt +
+                ", departmentId='" + departmentId + '\'' +
                 ", source='" + source + '\'' +
                 '}';
     }

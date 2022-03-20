@@ -9,7 +9,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -37,7 +36,7 @@ public class UserResource {
     @Path("login")
     public Response getToken(@Valid LoginRequest loginRequest) {
         if (loginRequest.username.equals(username) && loginRequest.password.equals(password)) {
-            return Response.ok(proofKeyService.generateCode(username)).build();
+            return Response.ok(proofKeyService.generateCode(loginRequest.source)).build();
         } else {
             throw new UnauthorizedException("Invalid username or password");
         }
