@@ -7,4 +7,6 @@ public class LoginRequest {
     public String username;
     @NotBlank
     public String password;
+    @NotBlank
+    public String source;
 }

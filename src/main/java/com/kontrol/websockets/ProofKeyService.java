@@ -1,22 +1,28 @@
 package com.kontrol.websockets;
 
+import org.apache.commons.lang3.RandomStringUtils;
+
 import javax.enterprise.context.ApplicationScoped;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @ApplicationScoped
 public class ProofKeyService {
 
-    private final Map<UUID, String> proofCodes = new ConcurrentHashMap<>();
+    private static final int capacity = 1_000;
+    final Map<String, String> proofCodes = Collections.synchronizedMap(new LinkedHashMap<>(capacity));
 
-    public UUID generateCode(String userId) {
-        UUID code = UUID.randomUUID();
-        proofCodes.put(code, userId);
+    public String generateCode(String source) {
+        String code = RandomStringUtils.randomAlphanumeric(32);
+        if (proofCodes.size() >= capacity) {
+            proofCodes.remove(proofCodes.keySet().iterator().next());
+        }
+        proofCodes.put(code, source);
         return code;
     }
 
-    public String removeCode(UUID code) {
+    public String removeCode(String code) {
         return proofCodes.remove(code);
     }
 }

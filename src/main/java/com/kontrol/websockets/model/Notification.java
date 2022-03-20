@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 
 public class Notification {
     public NotificationType type;
-    public String message;
     public Object payload;
     public String source;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -17,7 +16,6 @@ public class Notification {
     public String toString() {
         return "Notification{" +
                 "type=" + type +
-                ", message='" + message + '\'' +
                 ", payload=" + payload +
                 ", source='" + source + '\'' +
                 ", triggeredAt=" + triggeredAt +
